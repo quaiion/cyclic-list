@@ -1,6 +1,8 @@
 #include "lst.hpp"
 
-static OPERATION_CODE list_resize_up (list_t *lst);
+enum RESIZE_OPER_CODE {RSZ_MEM_ERROR = 0, RESIZED = 1};
+
+static RESIZE_OPER_CODE list_resize_up (list_t *lst);
 static void node_swap (list_t *lst, ssize_t idx1, ssize_t idx2);
 static void ins_before (list_t *lst, ssize_t idx, elem_t val);
 static void ins_after (list_t *lst, ssize_t idx, elem_t val);
@@ -8,7 +10,7 @@ static void del (list_t *lst, ssize_t idx);
 static void del_head (list_t *lst);
 static void del_tail (list_t *lst);
 
-void list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
+CTOR_OPER_CODE list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
 
     assert (lst);
 
@@ -16,7 +18,7 @@ void list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
     if (lst->data == NULL) {
 
         printf ("\nConstruction failed: memory error\n");
-        exit (EXIT_FAILURE);
+        return CTOR_MEM_ERROR;
     }
 
     lst->data [FICT].elem = FICT_NODE_ELEM;
@@ -43,6 +45,8 @@ void list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
 
     lst->quick_mode = true;
     lst->cap = cap;
+
+    return CONSTRUCTED;
 }
 
 void list_dtor (list_t *lst) {
@@ -62,13 +66,23 @@ ssize_t list_insert_front (list_t *lst, elem_t val) {        // Можно пр�
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return OPER_ERROR_VER;
+    }
+
+#endif
+
     if (lst->free == FICT) {
         
-        if (list_resize_up (lst) == ERROR) {
+        if (list_resize_up (lst) == RSZ_MEM_ERROR) {
 
-            printf ("\nResize failed: memory error while trying to resize up from capacity %lld to capacity %lld, in function list_insert_front ()\n",
+            printf ("\nResize failed: memory error while trying to resize up \
+                    from capacity %lld to capacity %lld, in function list_insert_front ()\n",
                     lst->cap, lst->cap * 2 + 1);
-            return ERROR;
+            return OPER_ERROR_MEM;
         }
     }
 
@@ -82,13 +96,23 @@ ssize_t list_insert_back (list_t *lst, elem_t val) {        // Можно про
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return OPER_ERROR_VER;
+    }
+
+#endif
+
     if (lst->free == FICT) {
         
-        if (list_resize_up (lst) == ERROR) {
+        if (list_resize_up (lst) == RSZ_MEM_ERROR) {
 
-            printf ("\nResize failed: memory error while trying to resize up from capacity %lld to capacity %lld, in function list_insert_back ()\n",
+            printf ("\nResize failed: memory error while trying to resize up \
+                    from capacity %lld to capacity %lld, in function list_insert_back ()\n",
                     lst->cap, lst->cap * 2 + 1);
-            return ERROR;
+            return OPER_ERROR_MEM;
         }
     }
 
@@ -97,32 +121,52 @@ ssize_t list_insert_back (list_t *lst, elem_t val) {        // Можно про
     return lst->data [FICT].prev;
 }
 
-ssize_t list_insert_before (list_t *lst, elem_t val, size_t pos) {
+ssize_t list_insert_before (list_t *lst, elem_t val, ssize_t pos) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return OPER_ERROR_VER;
+    }
+
+#endif
+
     if (lst->free == FICT) {
         
-        if (list_resize_up (lst) == ERROR) {
+        if (list_resize_up (lst) == RSZ_MEM_ERROR) {
 
-            printf ("\nResize failed: memory error while trying to resize up from capacity %lld to capacity %lld, in function list_insert_before ()\n",
+            printf ("\nResize failed: memory error while trying to resize up \
+                    from capacity %lld to capacity %lld, in function list_insert_before ()\n",
                     lst->cap, lst->cap * 2 + 1);
-            return ERROR;
+            return OPER_ERROR_MEM;
         }
     }
 
     if (pos > lst->cap) {
 
-        printf ("\nInsertion failed: *pos* argument exceeds lists capacity value while trying to insert an element before one on position %llu, in function list_insert_before ()\n",
+        printf ("\nInsertion failed: *pos* argument exceeds lists capacity value while trying to insert \
+                an element before one on position %lld, in function list_insert_before ()\n",
                 pos);
-        return ERROR;
+        return OPER_ERROR_INP;
+    }
+
+    if (pos < 0) {
+
+        printf ("\nInsertion failed: *pos* argument ran below zero while trying to insert \
+                an element before one on position %lld, in function list_insert_before ()\n",
+                pos);
+        return OPER_ERROR_INP;
     }
 
     if (lst->data [pos].prev == FREE_NODE_MARKER) {
 
-        printf ("\nInsertion failed: *pos* argument is pointing at a free node while trying to insert an element before one on position %llu, in function list_insert_before ()\n",
+        printf ("\nInsertion failed: *pos* argument is pointing at a free node while trying to insert \
+                an element before one on position %lld, in function list_insert_before ()\n",
                 pos);
-        return ERROR;
+        return OPER_ERROR_INP;
     }
 
     ins_before (lst, pos, val);
@@ -131,32 +175,52 @@ ssize_t list_insert_before (list_t *lst, elem_t val, size_t pos) {
     return lst->data [pos].prev;
 }
 
-ssize_t list_insert_after (list_t *lst, elem_t val, size_t pos) {
+ssize_t list_insert_after (list_t *lst, elem_t val, ssize_t pos) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return OPER_ERROR_VER;
+    }
+
+#endif
+
     if (lst->free == FICT) {
         
-        if (list_resize_up (lst) == ERROR) {
+        if (list_resize_up (lst) == RSZ_MEM_ERROR) {
 
-            printf ("\nResize failed: memory error\nINFO: while trying to resize up from capacity %lld to capacity %lld, in function list_insert_after ()\n",
+            printf ("\nResize failed: memory error\n while trying to resize up \
+                    from capacity %lld to capacity %lld, in function list_insert_after ()\n",
                     lst->cap, lst->cap * 2 + 1);
-            return ERROR;
+            return OPER_ERROR_MEM;
         }
     }
 
     if (pos > lst->cap) {
 
-        printf ("\nInsertion failed: *pos* argument exceeds lists capacity value while trying to insert an element after one on position %llu, in function list_insert_after ()\n",
+        printf ("\nInsertion failed: *pos* argument exceeds lists capacity value while trying to insert \
+                an element after one on position %lld, in function list_insert_after ()\n",
                 pos);
-        return ERROR;
+        return OPER_ERROR_INP;
+    }
+
+    if (pos < 0) {
+
+        printf ("\nInsertion failed: *pos* argument ran below zero while trying to insert \
+                an element after one on position %lld, in function list_insert_after ()\n",
+                pos);
+        return OPER_ERROR_INP;
     }
 
     if (lst->data [pos].prev == FREE_NODE_MARKER) {
 
-        printf ("\nInsertion failed: *pos* argument is pointing at a free node while trying to insert an element after one on position %llu, in function list_insert_after ()\n",
+        printf ("\nInsertion failed: *pos* argument is pointing at a free node while trying to insert \
+                an element after one on position %lld, in function list_insert_after ()\n",
                 pos);
-        return ERROR;
+        return OPER_ERROR_INP;
     }
 
     ins_after (lst, pos, val);
@@ -165,58 +229,96 @@ ssize_t list_insert_after (list_t *lst, elem_t val, size_t pos) {
     return lst->data [pos].next;
 }
 
-OPERATION_CODE list_delete_front (list_t *lst) {
+DEL_FR_OPER_CODE list_delete_front (list_t *lst) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return DEL_FR_VER_FAILED;
+    }
+
+#endif
+
     if (lst->data [FICT].next == NO_HEAD) {
 
-        return NO_OBJ_TO_DELETE;
+        return NO_HEAD_TO_DELETE;
     }
 
     del_head (lst);
 
     lst->quick_mode = false;
-    return DELETED;
+    return HEAD_DELETED;
 }
 
-OPERATION_CODE list_delete_back (list_t *lst) {
+DEL_BK_OPER_CODE list_delete_back (list_t *lst) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return DEL_BK_VER_FAILED;
+    }
+
+#endif
+
     if (lst->data [FICT].prev == NO_TAIL) {
 
-        return NO_OBJ_TO_DELETE;
+        return NO_TAIL_TO_DELETE;
     }
 
     del_tail (lst);
 
-    return DELETED;
+    return TAIL_DELETED;
 }
 
-OPERATION_CODE list_delete (list_t *lst, size_t pos) {
+DEL_OPER_CODE list_delete (list_t *lst, ssize_t pos) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return DEL_VER_FAILED;
+    }
+
+#endif
+
     if (pos == FICT) {
 
-        printf ("\nDeletion failed: *pos* argument is pointing at a base fictive node while trying to delete an element on position %llu, in function list_delete ()\n", 
+        printf ("\nDeletion failed: *pos* argument is pointing at a base fictive node while trying to delete \
+                an element on position %lld, in function list_delete ()\n", 
                 pos);
-        return ERROR;
+        return DEL_WRONG_INPUT;
     }
 
     if (pos > lst->cap) {
 
-        printf ("\nDeletion failed: *pos* argument exceeds lists capacity value while trying to delete an element on position %llu, in function list_delete ()\n",
+        printf ("\nDeletion failed: *pos* argument exceeds lists capacity value while trying to delete \
+                an element on position %lld, in function list_delete ()\n",
                 pos);
-        return ERROR;
+        return DEL_WRONG_INPUT;
+    }
+
+    if (pos < 0) {
+
+        printf ("\nDeletion failed: *pos* argument ran below zero while trying to delete \
+                an element on position %lld, in function list_delete ()\n",
+                pos);
+        return DEL_WRONG_INPUT;
     }
 
     if (lst->data [pos].prev == FREE_NODE_MARKER) {
 
-        printf ("\nDeletion failed: *pos* argument is pointing at a free node while trying to delete an element on position %llu, in function list_delete ()\n",
+        printf ("\nDeletion failed: *pos* argument is pointing at a free node while trying to delete \
+                an element on position %lld, in function list_delete ()\n",
                 pos);
-        return ERROR;
+        return DEL_WRONG_INPUT;
     }
 
     del (lst, pos);
@@ -225,9 +327,26 @@ OPERATION_CODE list_delete (list_t *lst, size_t pos) {
     return DELETED;
 }
 
-elem_t list_take (list_t *lst, size_t nseq) {
+elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще кодов ошибок по очевидным причинам возвращать не может ни в каком виде
 
     assert (lst);
+
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return 0;
+    }
+
+#endif
+
+    if (nseq < 0) {
+
+        printf ("\nTake failed: *nseq* argument ran below zero while trying to take \
+                an element in node %lld, in function list_take ()\n",
+                nseq);
+        return 0;
+    }
 
     if (lst->quick_mode) {
 
@@ -235,17 +354,19 @@ elem_t list_take (list_t *lst, size_t nseq) {
 
             if (nseq >= lst->free) {
 
-                printf ("\nTake failed: *nseq* argument exceeds sequence's real size (%lld) while trying to take node %llu, in function list_take ()\n",
+                printf ("\nTake failed: *nseq* argument exceeds sequence's real size (%lld) \
+                        while trying to take node %lld, in function list_take ()\n",
                         lst->free - 1, nseq);
-                return ERROR;
+                return OPER_ERROR_INP;
             }
         } else {
 
             if (nseq > lst->cap) {
 
-                printf ("\nTake failed: *nseq* argument exceeds sequence's real size (%lld) while trying to take node %llu, in function list_take ()\n",
+                printf ("\nTake failed: *nseq* argument exceeds sequence's real size (%lld) \
+                        while trying to take node %lld, in function list_take ()\n",
                         lst->cap, nseq);
-                return ERROR;
+                return OPER_ERROR_INP;
             }
         }
 
@@ -265,22 +386,41 @@ elem_t list_take (list_t *lst, size_t nseq) {
 
     } while (idx != FICT);
 
-    printf ("\nTake failed: *nseq* argument exceeds sequence's real size (%lld) while trying to take node %llu, in function list_take ()\n",
+    printf ("\nTake failed: *nseq* argument exceeds sequence's real size (%lld) \
+            while trying to take node %lld, in function list_take ()\n",
             nodes_handled, nseq);
-    return ERROR;
+    return OPER_ERROR_INP;
 }
 
-ssize_t list_seq_insert_before (list_t *lst, elem_t val, size_t nseq) {
+ssize_t list_seq_insert_before (list_t *lst, elem_t val, ssize_t nseq) {
 
     assert (lst);
+
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return OPER_ERROR_VER;
+    }
+
+#endif
+
+    if (nseq < 0) {
+
+        printf ("\nInsertion failed: *nseq* argument ran below zero while trying to insert \
+                node before node %lld, in function list_seq_insert_before ()\n",
+                nseq);
+        return OPER_ERROR_INP;
+    }
     
     if (lst->free == FICT) {
         
-        if (list_resize_up (lst) == ERROR) {
+        if (list_resize_up (lst) == RSZ_MEM_ERROR) {
 
-            printf ("\nResize failed: memory error while trying to resize up from capacity %lld to capacity %lld, in function list_seq_insert_before ()\n",
+            printf ("\nResize failed: memory error while trying to resize up \
+                    from capacity %lld to capacity %lld, in function list_seq_insert_before ()\n",
                     lst->cap, lst->cap * 2 + 1);
-            return ERROR;
+            return OPER_ERROR_MEM;
         }
     }
 
@@ -288,9 +428,10 @@ ssize_t list_seq_insert_before (list_t *lst, elem_t val, size_t nseq) {
 
         if (nseq > lst->free - 1) {
 
-            printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to insert node before node %llu, in function list_seq_insert_before ()\n",
+            printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) \
+                    while trying to insert node before node %lld, in function list_seq_insert_before ()\n",
                     lst->free - 1, nseq);
-            return ERROR;
+            return OPER_ERROR_INP;
         }
 
         ins_before (lst, nseq, val);
@@ -313,22 +454,41 @@ ssize_t list_seq_insert_before (list_t *lst, elem_t val, size_t nseq) {
 
     } while (idx != FICT);
 
-    printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to insert node before node %llu, in function list_seq_insert_before ()\n",
+    printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) \
+            while trying to insert node before node %lld, in function list_seq_insert_before ()\n",
             nodes_handled - 1, nseq);
-    return ERROR;
+    return OPER_ERROR_INP;
 }
 
-ssize_t list_seq_insert_after (list_t *lst, elem_t val, size_t nseq) {
+ssize_t list_seq_insert_after (list_t *lst, elem_t val, ssize_t nseq) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return OPER_ERROR_VER;
+    }
+
+#endif
+
+    if (nseq < 0) {
+
+        printf ("\nInsertion failed: *nseq* argument ran below zero while trying to insert \
+                node after node %lld, in function list_seq_insert_after ()\n",
+                nseq);
+        return OPER_ERROR_INP;
+    }
+
     if (lst->free == FICT) {
         
-        if (list_resize_up (lst) == ERROR) {
+        if (list_resize_up (lst) == RSZ_MEM_ERROR) {
 
-            printf ("\nResize failed: memory error while trying to resize up from capacity %lld to capacity %lld, in function list_seq_insert_after ()\n",
+            printf ("\nResize failed: memory error while trying to resize up \
+                    from capacity %lld to capacity %lld, in function list_seq_insert_after ()\n",
                     lst->cap, lst->cap * 2 + 1);
-            return ERROR;
+            return OPER_ERROR_MEM;
         }
     }
 
@@ -336,9 +496,10 @@ ssize_t list_seq_insert_after (list_t *lst, elem_t val, size_t nseq) {
 
         if (nseq > lst->free - 1) {
 
-            printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to insert node after node %llu, in function list_seq_insert_after ()\n",
+            printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) \
+                    while trying to insert node after node %lld, in function list_seq_insert_after ()\n",
                     lst->free - 1, nseq);
-            return ERROR;
+            return OPER_ERROR_INP;
         }
 
         ins_after (lst, nseq, val);
@@ -362,20 +523,39 @@ ssize_t list_seq_insert_after (list_t *lst, elem_t val, size_t nseq) {
 
     } while (idx != FICT);
 
-    printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to insert node before node %llu, in function list_seq_insert_after ()\n",
+    printf ("\nInsertion failed: *nseq* argument exceeds sequence's real size (%lld) \
+            while trying to insert node before node %lld, in function list_seq_insert_after ()\n",
             nodes_handled - 1, nseq);
-    return ERROR;
+    return OPER_ERROR_INP;
 }
 
-OPERATION_CODE list_seq_delete (list_t *lst, size_t nseq) {
+DEL_SQ_OPER_CODE list_seq_delete (list_t *lst, ssize_t nseq) {
 
     assert (lst);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return DEL_SQ_VER_FAILED;
+    }
+
+#endif
+
+    if (nseq < 0) {
+
+        printf ("\nDeletion failed: *nseq* argument ran below zero while trying to delete \
+                node %lld, in function list_seq_delete ()\n",
+                nseq);
+        return DEL_SQ_WRONG_INPUT;
+    }
+
     if (nseq == FICT) {
 
-        printf ("\nDeletion failed: *nseq* argument is pointing at a base fictive node while trying to delete node %llu, in function list_seq_delete ()\n", 
+        printf ("\nDeletion failed: *nseq* argument is pointing at a base fictive node \
+                while trying to delete node %lld, in function list_seq_delete ()\n", 
                 nseq);
-        return ERROR;
+        return DEL_SQ_WRONG_INPUT;
     }
 
     if (lst->quick_mode) {
@@ -384,24 +564,26 @@ OPERATION_CODE list_seq_delete (list_t *lst, size_t nseq) {
 
             if (nseq >= lst->free) {
 
-                printf ("\nDeletion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to delete node %llu, in function list_seq_delete ()\n",
+                printf ("\nDeletion failed: *nseq* argument exceeds sequence's real size (%lld) \
+                        while trying to delete node %lld, in function list_seq_delete ()\n",
                         lst->free - 1, nseq);
-                return ERROR;
+                return DEL_SQ_WRONG_INPUT;
             }
         } else {
 
             if (nseq > lst->cap) {
 
-                printf ("\nDeletion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to delete node %llu, in function list_seq_delete ()\n",
+                printf ("\nDeletion failed: *nseq* argument exceeds sequence's real size (%lld) \
+                        while trying to delete node %lld, in function list_seq_delete ()\n",
                         lst->cap, nseq);
-                return ERROR;
+                return DEL_SQ_WRONG_INPUT;
             }
         }
 
         del (lst, nseq);
 
         lst->quick_mode = false;
-        return DELETED;
+        return SQ_DELETED;
     }
 
     ssize_t idx = FICT, nodes_handled = 0;
@@ -411,7 +593,7 @@ OPERATION_CODE list_seq_delete (list_t *lst, size_t nseq) {
 
             del (lst, idx);
 
-            return DELETED;
+            return SQ_DELETED;
         }
 
         idx = lst->data [idx].next;
@@ -419,9 +601,10 @@ OPERATION_CODE list_seq_delete (list_t *lst, size_t nseq) {
 
     } while (idx != FICT);
 
-    printf ("\nDeletion failed: *nseq* argument exceeds sequence's real size (%lld) while trying to delete node %llu, in function list_seq_delete ()\n",
+    printf ("\nDeletion failed: *nseq* argument exceeds sequence's real size (%lld) \
+            while trying to delete node %lld, in function list_seq_delete ()\n",
             nodes_handled, nseq);
-    return ERROR;
+    return DEL_SQ_WRONG_INPUT;
 }
 
 VERIFICATION_CODE list_verify (list_t *lst) {
@@ -446,11 +629,12 @@ VERIFICATION_CODE list_verify (list_t *lst) {
         return FREE_FLAW;
     }
 
-    if (!(lst->data [FICT].next > 0 && lst->data [FICT].next <= lst->cap &&
-        lst->data [FICT].prev > 0 && lst->data [FICT].prev <= lst->cap ||
-        lst->data [FICT].next == 0 && lst->data [FICT].prev == 0)) {
+    if (!((lst->data [FICT].next > 0 && lst->data [FICT].next <= lst->cap &&
+        lst->data [FICT].prev > 0 && lst->data [FICT].prev <= lst->cap) ||
+        (lst->data [FICT].next == 0 && lst->data [FICT].prev == 0))) {                    // Тут возникли какие-то проблемы (вероятно, громоздкость записи), но я не помню, как их нормально поправить
 
-        printf ("\nVerification failed: list's fictional node has an impossible parameters combination (next: %lld; prev: %lld; list's capacity: %lld)\n",
+        printf ("\nVerification failed: list's fictional node has an impossible \
+                parameters combination (next: %lld; prev: %lld; list's capacity: %lld)\n",
                 lst->data [FICT].next, lst->data [FICT].prev, lst->cap);
         return FICT_FLAW;
     }
@@ -460,14 +644,17 @@ VERIFICATION_CODE list_verify (list_t *lst) {
 
         if (lst->data [idx].next > lst->cap || lst->data [idx].next < 0) {
 
-            printf ("\nVerification failed: the node next to the one on position %lld has an impossible index: %lld (number %lld in the order of the list)\n",
+            printf ("\nVerification failed: the node next to the one \
+                    on position %lld has an impossible index: %lld (number %lld in the order of the list)\n",
                     idx, lst->data [idx].next, nodes_handled + 1);
             return LST_IDX_FLAW;
         }
 
         if (lst->data [lst->data [idx].next].prev != idx) {
 
-            printf ("\nVerification failed: incongruity of next and prev parameters detected during the transition from the node on position %lld to the node on position %lld (number %lld and %lld in the order of the list)\n",
+            printf ("\nVerification failed: incongruity of next and prev parameters \
+                    detected during the transition from the node on position %lld to the node \
+                    on position %lld (number %lld and %lld in the order of the list)\n",
                     idx, lst->data [idx].next, nodes_handled, nodes_handled + 1);
             return LST_SEQUENCE_FLAW;
         }
@@ -478,18 +665,21 @@ VERIFICATION_CODE list_verify (list_t *lst) {
     } while (idx != FICT);
 
     idx = lst->free;
-    for (ssize_t free_nodes_handled = 0; idx != FICT; ++ nodes_handled, ++ free_nodes_handled, idx = lst->data [idx].next) {
+    for (ssize_t free_nodes_handled = 0; idx != FICT;
+        ++ nodes_handled, ++ free_nodes_handled, idx = lst->data [idx].next) {
 
         if (lst->data [idx].prev != FREE_NODE_MARKER) {
 
-            printf ("\nVerification failed: the free node on position %lld has no *free node* marker (prev: %lld; number %lld in the order of the free list)\n",
+            printf ("\nVerification failed: the free node on position %lld has \
+                    no *free node* marker (prev: %lld; number %lld in the order of the free list)\n",
                     idx, lst->data [idx].prev, free_nodes_handled + 1);
             return FREE_MARKER_FLAW;
         }
 
         if (lst->data [idx].next > lst->cap || lst->data [idx].next < 0) {
 
-            printf ("\nVerification failed: the free node next to the one on position %lld has an impossible index: %lld (number %lld in the order of the free list)\n",
+            printf ("\nVerification failed: the free node next to the one on position %lld has \
+                    an impossible index: %lld (number %lld in the order of the free list)\n",
                     idx, lst->data [idx].next, free_nodes_handled + 1);
             return FREE_IDX_FLAW;
         }
@@ -497,7 +687,8 @@ VERIFICATION_CODE list_verify (list_t *lst) {
 
     if (nodes_handled != lst->cap + 1) {
 
-        printf ("\nVerification failed: number of nodes in main and free sequences doesn't match list's capacity (%lld against %lld)\n",
+        printf ("\nVerification failed: number of nodes in main and free \
+                sequences doesn't match list's capacity (%lld against %lld)\n",
                 nodes_handled, lst->cap);
         return INCOMPLETENESS_FLAW;
     }
@@ -505,15 +696,24 @@ VERIFICATION_CODE list_verify (list_t *lst) {
     return NO_FLAWS;
 }
 
-OPERATION_CODE list_dump (list_t *lst, const char *file_name) {
+DUMP_OPER_CODE list_dump (list_t *lst, const char *file_name) {
 
     assert (lst);
     assert (file_name);
 
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return DMP_VER_FAILED;
+    }
+
+#endif
+
     if (strlen (file_name) > 30) {
 
         printf ("\nDump failed: impossible dump file name\n");
-        return ERROR;
+        return COMMON_DMP_ERROR;
     }
 
     FILE *dump_file = fopen ("list_dump_instr.gv", "w");
@@ -521,10 +721,11 @@ OPERATION_CODE list_dump (list_t *lst, const char *file_name) {
     if (dump_file == NULL) {
 
         printf ("\nDump failed: failed to open the dump instruction file\n");
-        return ERROR;
+        return COMMON_DMP_ERROR;
     }
 
-    fputs ("digraph dump{\n\trankdir=TB;\n\t{\n\t\tnode[shape=plaintext];\n\t\tedge[color=white];\n\t\t\"cell 0 (FICT)\"", dump_file);
+    fputs ("digraph dump{\n\trankdir=TB;\n\t{\n\t\tnode[shape=plaintext];\
+            \n\t\tedge[color=white];\n\t\t\"cell 0 (FICT)\"", dump_file);
     for (ssize_t i = 1; i <= lst->cap; ++ i) {
 
         fprintf (dump_file, " -> \"cell %lld\"", i);
@@ -564,22 +765,31 @@ OPERATION_CODE list_dump (list_t *lst, const char *file_name) {
 
     fclose (dump_file);
 
-    char *cmd = (char *) calloc (100, sizeof (char));
-    sprintf (cmd, "dot -Tpng list_dump_instr.gv -o %s.png", file_name);
+    char *cmd = (char *) calloc (64, sizeof (char));
+    sprintf (cmd, "dot -Tpng list_dump_instr.gv -o %s", file_name);
     system (cmd);
     free (cmd);
 
     return DUMPED;
 }
 
-void list_sort (list_t *lst) {
+SORT_OPER_CODE list_sort (list_t *lst) {
 
     assert (lst);
+
+#ifdef AUTO_VERIFICATION_ON
+
+    if (list_verify (lst) != NO_FLAWS) {
+
+        return SRT_VER_FAILED;
+    }
+
+#endif
 
     ssize_t idx = lst->data [FICT].next, nseq = 1;
     for ( ; idx != FICT; ++ nseq) {
 
-        node_swap (lst, idx, nseq);         // Есть ли смысл добавить if от неравенства, чтобы ускорить алгоритм на полусортированных списках и замедлить на рандомных?
+        node_swap (lst, idx, nseq);
         idx = lst->data [nseq].next;
     }
 
@@ -599,6 +809,7 @@ void list_sort (list_t *lst) {
     }
 
     lst->quick_mode = true;
+    return SORTED;
 }
 
 static void node_swap (list_t *lst, ssize_t idx1, ssize_t idx2) {
@@ -611,7 +822,7 @@ static void node_swap (list_t *lst, ssize_t idx1, ssize_t idx2) {
 
     lst->data [lst->data [idx1].prev].next = idx2;
     lst->data [lst->data [idx1].next].prev = idx2;
-    if (lst->data [idx2].prev != -1) {              // Такая же проаверка для idx1 не требуется, т.к. в функции сортировки мы зовем swap только для idx1 = idx и idx2 = nseq, а idx не может указывать на свободный узел
+    if (lst->data [idx2].prev != -1) {              // Такая же проверка для idx1 не требуется, т.к. в функции сортировки мы зовем swap только для idx1 = idx и idx2 = nseq, а idx не может указывать на свободный узел
         
         lst->data [lst->data [idx2].prev].next = idx1;
         lst->data [lst->data [idx2].next].prev = idx1;
@@ -673,12 +884,18 @@ static void del_tail (list_t *lst) {
     lst->data [lst->data [FICT].prev].next = FICT;
 }
 
-static OPERATION_CODE list_resize_up (list_t *lst) {        // Вызов ресайза для незаполненного списка = incompleteness fault без вариантов
+static RESIZE_OPER_CODE list_resize_up (list_t *lst) {        // Вызов ресайза для незаполненного списка = incompleteness fault без вариантов
 
     ssize_t old_cap = lst->cap;
     node_t *buffer = (node_t *) realloc (lst->data, (old_cap * 2 + 2) * sizeof (node_t));
-    if (buffer) lst->cap = old_cap * 2 + 1;
-    else return ERROR;
+    if (buffer) {
+        
+        lst->cap = old_cap * 2 + 1;
+
+    } else {
+        
+        return RSZ_MEM_ERROR;
+    }
 
     lst->free = old_cap + 1;
     ssize_t idx = lst->free;
