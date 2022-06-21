@@ -10,6 +10,11 @@ static void del (list_t *lst, ssize_t idx);
 static void del_head (list_t *lst);
 static void del_tail (list_t *lst);
 
+#define DUMP_POSITION()                                                             \
+    do {                                                                            \
+        printf("^^^ %s : %s : %d ^^^\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);  \
+    } while (0)
+
 CTOR_OPER_CODE list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
 
     assert (lst);
@@ -70,6 +75,7 @@ ssize_t list_insert_front (list_t *lst, elem_t val) {        // Можно пр�
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return OPER_ERROR_VER;
     }
 
@@ -100,6 +106,7 @@ ssize_t list_insert_back (list_t *lst, elem_t val) {        // Можно про
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return OPER_ERROR_VER;
     }
 
@@ -129,6 +136,7 @@ ssize_t list_insert_before (list_t *lst, elem_t val, ssize_t pos) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return OPER_ERROR_VER;
     }
 
@@ -183,6 +191,7 @@ ssize_t list_insert_after (list_t *lst, elem_t val, ssize_t pos) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return OPER_ERROR_VER;
     }
 
@@ -237,6 +246,7 @@ DEL_FR_OPER_CODE list_delete_front (list_t *lst) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return DEL_FR_VER_FAILED;
     }
 
@@ -261,6 +271,7 @@ DEL_BK_OPER_CODE list_delete_back (list_t *lst) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return DEL_BK_VER_FAILED;
     }
 
@@ -284,6 +295,7 @@ DEL_OPER_CODE list_delete (list_t *lst, ssize_t pos) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return DEL_VER_FAILED;
     }
 
@@ -335,6 +347,7 @@ elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return 0;
     }
 
@@ -400,6 +413,7 @@ ssize_t list_seq_insert_before (list_t *lst, elem_t val, ssize_t nseq) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return OPER_ERROR_VER;
     }
 
@@ -468,6 +482,7 @@ ssize_t list_seq_insert_after (list_t *lst, elem_t val, ssize_t nseq) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return OPER_ERROR_VER;
     }
 
@@ -537,6 +552,7 @@ DEL_SQ_OPER_CODE list_seq_delete (list_t *lst, ssize_t nseq) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return DEL_SQ_VER_FAILED;
     }
 
@@ -705,6 +721,7 @@ DUMP_OPER_CODE list_dump (list_t *lst, const char *file_name) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return DMP_VER_FAILED;
     }
 
@@ -781,6 +798,7 @@ SORT_OPER_CODE list_sort (list_t *lst) {
 
     if (list_verify (lst) != NO_FLAWS) {
 
+        DUMP_POSITION();
         return SRT_VER_FAILED;
     }
 
