@@ -30,7 +30,7 @@ CTOR_OPER_CODE list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
     lst->data [FICT].prev = NO_TAIL;
     lst->data [FICT].next = NO_HEAD;
 
-    ssize_t idx = 1;       // Не уверен, что тут нельзя докопаться за magic number
+    ssize_t idx = 1;
     if (cap != 0) {
 
         for ( ; idx < cap; ++ idx) {
@@ -41,7 +41,7 @@ CTOR_OPER_CODE list_ctor (list_t *lst, ssize_t cap /* = 8 */) {
         lst->data [idx].prev = FREE_NODE_MARKER;
         lst->data [idx].next = FICT;
 
-        lst->free = 1;       // Не уверен, что тут нельзя докопаться за magic number
+        lst->free = 1;
 
     } else {
 
@@ -67,7 +67,7 @@ void list_dtor (list_t *lst) {
     lst->quick_mode = false;
 }
 
-ssize_t list_insert_front (list_t *lst, elem_t val) {        // Можно просто писать insert_after с pos == FICT, но вызов спец. функции чуточку быстрее
+ssize_t list_insert_front (list_t *lst, elem_t val) {
 
     assert (lst);
 
@@ -98,7 +98,7 @@ ssize_t list_insert_front (list_t *lst, elem_t val) {        // Можно пр�
     return lst->data [FICT].next;
 }
 
-ssize_t list_insert_back (list_t *lst, elem_t val) {        // Можно просто писать insert_before с pos == FICT, но вызов спец. функции чуточку быстрее
+ssize_t list_insert_back (list_t *lst, elem_t val) {
 
     assert (lst);
 
@@ -647,7 +647,7 @@ VERIFICATION_CODE list_verify (list_t *lst) {
 
     if (!((lst->data [FICT].next > 0 && lst->data [FICT].next <= lst->cap &&
         lst->data [FICT].prev > 0 && lst->data [FICT].prev <= lst->cap) ||
-        (lst->data [FICT].next == 0 && lst->data [FICT].prev == 0))) {                    // Тут возникли какие-то проблемы (вероятно, громоздкость записи), но я не помню, как их нормально поправить
+        (lst->data [FICT].next == 0 && lst->data [FICT].prev == 0))) {
 
         printf ("\nVerification failed: list's fictional node has an impossible \
                 parameters combination (next: %lld; prev: %lld; list's capacity: %lld)\n",
@@ -751,7 +751,7 @@ DUMP_OPER_CODE list_dump (list_t *lst, const char *file_name) {
     for (ssize_t i = 0; i <= lst->cap; ++ i) {
 
         fprintf (dump_file, "%lld [shape=record,label=\" elem %d | <next> next %lld | <prev> prev %lld\"];\n\t",
-                 i, lst->data [i].elem, lst->data [i].next, lst->data [i].prev);                    //  Можно ли как-то подвести спецификатор под typedef?
+                 i, lst->data [i].elem, lst->data [i].next, lst->data [i].prev);
     }
     fprintf (dump_file, "{ rank = same; \"cell 0 (FICT)\"; 0; free; }\n\t");
     for (ssize_t i = 1; i <= lst->cap; ++ i) {
@@ -840,7 +840,7 @@ static void node_swap (list_t *lst, ssize_t idx1, ssize_t idx2) {
 
     lst->data [lst->data [idx1].prev].next = idx2;
     lst->data [lst->data [idx1].next].prev = idx2;
-    if (lst->data [idx2].prev != -1) {              // Такая же проверка для idx1 не требуется, т.к. в функции сортировки мы зовем swap только для idx1 = idx и idx2 = nseq, а idx не может указывать на свободный узел
+    if (lst->data [idx2].prev != -1) {              // Same verification for idx1 is unnecessary, because sorting func uses swap only for idx1 = idx and idx2 = nseq and idx cannot point at a free node
         
         lst->data [lst->data [idx2].prev].next = idx1;
         lst->data [lst->data [idx2].next].prev = idx1;
@@ -902,7 +902,7 @@ static void del_tail (list_t *lst) {
     lst->data [lst->data [FICT].prev].next = FICT;
 }
 
-static RESIZE_OPER_CODE list_resize_up (list_t *lst) {        // Вызов ресайза для незаполненного списка = incompleteness fault без вариантов
+static RESIZE_OPER_CODE list_resize_up (list_t *lst) {
 
     ssize_t old_cap = lst->cap;
     node_t *buffer = (node_t *) realloc (lst->data, (old_cap * 2 + 2) * sizeof (node_t));
