@@ -339,7 +339,7 @@ DEL_OPER_CODE list_delete (list_t *lst, ssize_t pos) {
     return DELETED;
 }
 
-elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще кодов ошибок по очевидным причинам возвращать не может ни в каком виде
+ssize_t list_take (list_t *lst, ssize_t nseq) {
 
     assert (lst);
 
@@ -348,7 +348,7 @@ elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще
     if (list_verify (lst) != NO_FLAWS) {
 
         DUMP_POSITION();
-        return 0;
+        return OPER_ERROR_VER;
     }
 
 #endif
@@ -358,7 +358,7 @@ elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще
         printf ("\nTake failed: *nseq* argument ran below zero while trying to take \
                 an element in node %lld, in function list_take ()\n",
                 nseq);
-        return 0;
+        return OPER_ERROR_INP;
     }
 
     if (lst->quick_mode) {
@@ -383,7 +383,7 @@ elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще
             }
         }
 
-        return lst->data [nseq].elem;
+        return nseq;
     }
 
     ssize_t idx = FICT, nodes_handled = 0;
@@ -391,7 +391,7 @@ elem_t list_take (list_t *lst, ssize_t nseq) {          // Этот вообще
 
         if (nodes_handled == nseq) {
 
-            return lst->data [idx].elem;
+            return idx;
         }
 
         idx = lst->data [idx].next;

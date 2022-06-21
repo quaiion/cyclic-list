@@ -56,14 +56,14 @@ ssize_t list_insert_after (list_t *lst, elem_t val, ssize_t pos);
 Here and wherever *nseq* parameter is used or
 "in the order of the list" is printed it is supposed
 that nodes' sequential numbers are starting from 1 (head)
-and ending on *cap* (tail)
+and ending on *size* (tail)
 
-*cap* + 1 and 0 both imply the fictional node's
-sequantial number, but TO USE FICTIONAL NODE'S
+*size* + 1 and 0 both imply the fictional node's
+sequential number, but TO USE FICTIONAL NODE'S
 NUMBER as a function argument always use 0
 */
 
-elem_t list_take (list_t *lst, ssize_t nseq);
+ssize_t list_take (list_t *lst, ssize_t nseq);
 
 DEL_FR_OPER_CODE list_delete_front (list_t *lst);
 DEL_BK_OPER_CODE list_delete_back (list_t *lst);

@@ -6,10 +6,12 @@ This project includes the description of the data structure and a bunch of usefu
 - Insertion and deletion of head and tail
 - Insertion before/after a node and deletion of a node with his *real* position (array index)
 - Insertion before/after a node and deletion of a node with his *logical* number
-- Getting a node with his *logical* number
+- Getting node's *real* position with his *logical* number
 - In-place O(n) list sort
 - Verification
 - Graphic dump
+
+***IMPORTANT THING ABOUT NODES' LOGICAL NUMBERS:*** head node has *logical* number 1, tail node's *logical* number equals list's size, fictional node has *logical* number 0 and *real* position (array index) 0 as well.
 
 Sorting function can be used to match nodes' logical numbers with their positions in the array. If this happens, list automatically switches to the quick mode - all the functions taking nodes' *logical* numbers as arguments start working with algorithmic complexity O(1) instead of O(n). This continues until the accordance between array indexes and logical numbers isn't broken.
 
