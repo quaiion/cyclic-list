@@ -1,7 +1,7 @@
 # Cyclic cache-friendly doubly-linked list
 
 ## Description & Features
-This project includes the description of the data structure and a bunch of useful methods for working with it. These methods include:
+This project includes the description of the list itself and a bunch of useful methods for working with it. These methods include:
 - Constructor and destructor
 - Insertion and deletion of head and tail
 - Insertion before/after a node and deletion of a node with his *real* position (array index)
