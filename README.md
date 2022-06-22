@@ -34,6 +34,6 @@ In-code documentation (compatible with Doxygen) will be added soon.
 This is an open-source educational project. You can freely use, edit and distribute any versions of this code in personal and commercial purposes.
 
 ## Contacts
-#### Korney Ivanishin, co-author of the project
+#### Korney Ivanishin, author of the project
 email: <korney059@gmail.com>,
 GitHub: [quaiion](https://github.com/quaiion)
